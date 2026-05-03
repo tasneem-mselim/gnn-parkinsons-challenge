@@ -5,31 +5,25 @@ let sortAsc = false;
 async function loadLeaderboard() {
     const tableContainer = document.getElementById('leaderboardTable');
     const emptyState = document.getElementById('emptyState');
-    
+
     try {
         tableContainer.innerHTML = '<div class="loading">⏳ Loading...</div>';
         if (emptyState) emptyState.style.display = 'none';
-        
-        let csvUrl;
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            csvUrl = './leaderboard.csv';
-        } else {
-            csvUrl = './leaderboard.csv';
-        }
-        
+
+        const csvUrl = './leaderboard.csv';
         console.log('Fetching leaderboard from:', csvUrl);
-        
+
         const response = await fetch(csvUrl);
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
+
         const csvText = await response.text();
         console.log('CSV loaded, length:', csvText.length);
-        
+
         leaderboardData = parseCSV(csvText);
         console.log('Parsed entries:', leaderboardData.length);
-        
+
         if (leaderboardData.length === 0) {
             tableContainer.innerHTML = '<div class="loading" style="color: orange;">⚠️ No submissions yet</div>';
             if (emptyState) emptyState.style.display = 'block';
@@ -55,18 +49,18 @@ function parseCSV(csv) {
         console.warn('CSV is empty');
         return [];
     }
-    
+
     const lines = csv.split(/\r?\n/).filter(line => line.trim());
     if (lines.length <= 1) {
         console.warn('CSV has no data rows');
         return [];
     }
-    
+
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
     console.log('CSV headers:', headers);
-    
+
     const data = [];
-    
+
     for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(',').map(v => v.trim());
         if (values.length === headers.length && values[0]) {
@@ -79,7 +73,7 @@ function parseCSV(csv) {
             }
         }
     }
-    
+
     console.log('Parsed data:', data);
     return data;
 }
@@ -89,7 +83,7 @@ function updateStatsBar() {
     const best = scores.length > 0 ? Math.max(...scores) : null;
     const dates = leaderboardData.map(r => r.date).filter(d => d);
     const lastDate = dates.length > 0 ? dates[dates.length - 1] : 'N/A';
-    
+
     updateStats(leaderboardData.length, best, lastDate);
 }
 
@@ -97,34 +91,47 @@ function updateStats(total, best, updated) {
     const totalEl = document.getElementById('totalSubmissions');
     const bestEl = document.getElementById('bestScore');
     const updatedEl = document.getElementById('lastUpdated');
-    
+
     if (totalEl) totalEl.textContent = total;
     if (bestEl) bestEl.textContent = best !== null ? best.toFixed(4) : '-';
     if (updatedEl) updatedEl.textContent = updated || '-';
 }
 
+// Kaggle-style dense ranking:
+// - ranks come from the full dataset, not the filtered/sorted view
+// - ties get the same rank
+// - next rank after a tie is NOT skipped (1, 2, 2, 3 — not 1, 2, 2, 4)
+function computeRank(score) {
+    const uniqueScores = [...new Set(
+        leaderboardData
+            .map(r => parseFloat(r.score))
+            .filter(s => !isNaN(s))
+    )].sort((a, b) => b - a);
+
+    const rank = uniqueScores.findIndex(s => Math.abs(s - score) < 0.00001) + 1;
+    return rank === 0 ? '-' : rank;
+}
+
 function renderTable() {
     const searchTerm = document.getElementById('searchBox')?.value.toLowerCase() || '';
     const modelFilter = document.getElementById('modelFilter')?.value || '';
-    
+
     let filtered = leaderboardData.filter(row => {
-        const matchesSearch = !searchTerm || 
+        const matchesSearch = !searchTerm ||
             Object.values(row).some(val => val.toString().toLowerCase().includes(searchTerm));
         const matchesModel = !modelFilter || row.model?.toLowerCase().includes(modelFilter.toLowerCase());
         return matchesSearch && matchesModel;
     });
-    
+
     filtered.sort((a, b) => {
         let aVal = sortColumn === 'score' ? parseFloat(a[sortColumn]) || 0 : (a[sortColumn] || '');
         let bVal = sortColumn === 'score' ? parseFloat(b[sortColumn]) || 0 : (b[sortColumn] || '');
-        
+
         if (aVal < bVal) return sortAsc ? -1 : 1;
         if (aVal > bVal) return sortAsc ? 1 : -1;
         return 0;
     });
 
-    const allScoresSorted = leaderboardData.map(r => parseFloat(r.score)).filter(s => !isNaN(s)).sort((a, b) => b - a);
-    
     const table = document.createElement('table');
     table.innerHTML = `
         <thead>
@@ -140,10 +147,10 @@ function renderTable() {
         <tbody>
             ${filtered.map((row) => {
                 const score = parseFloat(row.score);
-                const rank = allScoresSorted.findIndex(s => Math.abs(s - score) < 0.00001) + 1;
+                const rank = computeRank(score);
                 const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
                 const scoreDisplay = !isNaN(score) ? score.toFixed(4) : 'N/A';
-                
+
                 return `
                     <tr>
                         <td class="rank-cell">${medal} ${rank}</td>
@@ -157,7 +164,7 @@ function renderTable() {
             }).join('')}
         </tbody>
     `;
-    
+
     document.getElementById('leaderboardTable').innerHTML = '';
     document.getElementById('leaderboardTable').appendChild(table);
 }
@@ -181,9 +188,9 @@ function sortBy(column) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Page loaded, initializing leaderboard...');
     loadLeaderboard();
-    
+
     document.getElementById('searchBox')?.addEventListener('input', renderTable);
     document.getElementById('modelFilter')?.addEventListener('change', renderTable);
-    
+
     setInterval(loadLeaderboard, 5 * 60 * 1000);
 });
