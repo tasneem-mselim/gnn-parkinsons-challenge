@@ -1,6 +1,6 @@
 # 🏆 Leaderboard
 
-Last updated: 2026-05-16 12:22:28
+Last updated: 2026-05-16 12:26:34
 
 | Rank | Team | Score | Model | Date |
 |------|------|-------|-------|------|
@@ -19,3 +19,4 @@ Last updated: 2026-05-16 12:22:28
 |  13 | El-Ikram_human | 0.6520 | GNN | 2026-04-05 |
 |  14 | samuelmatia_human | 0.6518 | GNN | 2026-04-01 |
 |  15 | KEMPEGUY_human | 0.5477 | GNN | 2026-04-09 |
+|  16 | AiIkram_claudeopus4.6 | 0.5293 | GNN | 2026-05-16 |
