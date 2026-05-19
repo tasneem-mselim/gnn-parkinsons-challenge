@@ -1,6 +1,6 @@
 # 🏆 Leaderboard
 
-Last updated: 2026-05-19 10:22:03
+Last updated: 2026-05-19 10:22:53
 
 | Rank | Team | Score | Model | Date |
 |------|------|-------|-------|------|
@@ -9,7 +9,7 @@ Last updated: 2026-05-19 10:22:03
 | 🥇 1 | Gemini-3-flash | 0.9328 | GNN | 2026-05-16 |
 |  4 | emmakowu3579-ui_human | 0.9023 | GNN | 2026-04-01 |
 |  4 | LLM_claude_opus_47  | 0.9023 | GNN | 2026-05-18 |
-|  6 | mubbytheback | 0.8796 | GNN | 2026-05-19 |
+|  6 | Kimi-k2.6 | 0.8796 | GNN | 2026-05-19 |
 |  7 | mahatrabelsi1_human | 0.8458 | GNN | 2026-04-01 |
 |  7 | SanaeZR_human | 0.8458 | GNN | 2026-04-04 |
 |  7 | SanaeZR_gpt5.4 | 0.8458 | GNN | 2026-05-17 |
